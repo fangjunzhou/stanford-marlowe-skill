@@ -1,0 +1,4 @@
+interface:
+  display_name: "Marlowe"
+  short_description: "Access Marlowe and run reproducible GPU research jobs"
+  default_prompt: "Use $marlowe to prepare and run a reproducible GPU research job on Stanford Marlowe."

@@ -1,0 +1,21 @@
+# Merge into local ~/.ssh/config; replace YOUR_SUNET_ID.
+# Keep these specific blocks before broad Host * defaults.
+# Pin a login node so reconnects return to the same host.
+Host marlowe
+    HostName login-01.marlowe.stanford.edu
+
+Host marlowe-02
+    HostName login-02.marlowe.stanford.edu
+
+Host marlowe-03
+    HostName login-03.marlowe.stanford.edu
+
+Host marlowe marlowe-02 marlowe-03
+    User YOUR_SUNET_ID
+    ControlMaster auto
+    ControlPath ~/.ssh/%C
+    ControlPersist 10m
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+    StrictHostKeyChecking ask
+    ForwardAgent no
