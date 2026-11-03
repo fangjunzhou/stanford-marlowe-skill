@@ -15,6 +15,8 @@
 
 # Replace account with an exact Basic Access account; create logs/ first.
 # Four smoke items, at most two concurrent: check the project's GPU cap.
+# For real workloads, set the range from the data shard count and tune the
+# concurrency cap and per-shard resources; prefer many small independent jobs.
 # For allocated batch hours, change account AND partition together.
 set -euo pipefail
 : "${SLURM_JOB_ID:?Submit through sbatch on Marlowe}"
@@ -22,6 +24,7 @@ set -euo pipefail
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 printf 'job=%s item=%s directory=%s\n' "$SLURM_JOB_ID" "$SLURM_ARRAY_TASK_ID" "$PWD"
 
-# Replace with the manifest-selected application command. Give each item
+# Replace with the manifest-selected application command for this data shard.
+# Process only this shard's inputs. Give each shard
 # separate outputs/checkpoints and implement startup resume for preemption.
 srun --ntasks=1 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader

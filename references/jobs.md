@@ -48,6 +48,16 @@ sbatch --parsable job.sbatch
 
 Only perform the last command when submission is in scope. `--test-only` checks scheduler acceptance without submitting; it cannot verify the application. Slurm opens log paths before the script executes, so create `logs/` before submission. `#SBATCH` lines must precede executable statements and do not expand shell variables. Use resolved working/log paths or submit from the intended directory. Preserve an explicit `--chdir` choice instead of unconditionally returning to `SLURM_SUBMIT_DIR`.
 
+## Shard independent work
+
+For independent inference, evaluation, preprocessing, or parameter sweeps, split the work into many small jobs over disjoint data shards. Prefer a Slurm array using [the array template](../assets/array-gpu.sbatch). Smaller resource requests and shorter walltimes can improve queue time; choose them from measured workload needs.
+
+- Build a stable input manifest and map each `SLURM_ARRAY_TASK_ID` to one shard. Cover every input exactly once and balance shards by expected runtime when input costs vary.
+- Request the smallest practical GPU count, CPU count, host RAM, and walltime per shard. Use one GPU when the application fits; retain multiple GPUs when model memory or coupled computation requires them.
+- Size shards so useful processing outweighs environment startup and model loading, while keeping jobs short enough to schedule independently. A shard can contain several inputs; do not create tiny jobs dominated by setup.
+- Set the array range from the shard count and bound concurrency with `%N` within current project GPU and job limits. For example, `--array=0-99%4` represents 100 shards with at most four running at once; it is illustrative, not a site limit. Concurrency times GPUs per shard must fit the project's available GPU allowance.
+- Give each shard separate outputs, checkpoints, and logs. Record completion, retry only failed or incomplete shards, and check full manifest coverage before aggregating results. For `preempt`, implement periodic save and startup reload using [checkpoints](checkpoints.md); requeue restarts the script, not process memory.
+
 ## Monitor and account
 
 Capture the returned job ID, removing any `;cluster` suffix for subsequent queries:
@@ -60,8 +70,6 @@ sacct -j JOB_ID --format=JobID,State,ExitCode,Elapsed,AllocTRES,MaxRSS
 ```
 
 Inspect pending reasons before changing a request; `squeue --start -j JOB_ID` is only an estimate. Queue absence does not prove success: check accounting, step rows, bounded logs, and expected outputs. Accounting can lag. After an uncertain/disconnected submission, inspect jobs and logs before retrying. Cancel only the intended verified job with `scancel JOB_ID` when cancellation is authorized.
-
-For arrays, map each `SLURM_ARRAY_TASK_ID` to a real input, isolate outputs/checkpoints, and bound concurrency to project limits. For `preempt`, implement periodic save and startup reload using [checkpoints](checkpoints.md); requeue restarts the script, not process memory.
 
 Report usage with the **actual suffixed account** and known billing-cycle start:
 
