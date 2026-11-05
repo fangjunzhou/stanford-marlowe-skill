@@ -71,6 +71,17 @@ sacct -j JOB_ID --format=JobID,State,ExitCode,Elapsed,AllocTRES,MaxRSS
 
 Inspect pending reasons before changing a request; `squeue --start -j JOB_ID` is only an estimate. Queue absence does not prove success: check accounting, step rows, bounded logs, and expected outputs. Accounting can lag. After an uncertain/disconnected submission, inspect jobs and logs before retrying. Cancel only the intended verified job with `scancel JOB_ID` when cancellation is authorized.
 
+### Monitoring cadence and recovery
+
+Own a requested run through application completion and output verification, including diagnosis and fixes for failed jobs. Do not end ownership at submission or leave a watcher that merely stops on failure when the user has authorized recovery.
+
+- Query `squeue --start` and scheduler state at each monitoring check. If the earliest runnable job is more than 30 minutes from its estimated start, check every 30 minutes; once it is within 30 minutes, switch to every 10 minutes. Continue every 10 minutes while jobs are running or when no usable start estimate is available. Dependency-blocked jobs follow their unfinished prerequisite's estimate. Estimates can move; recompute the cadence each time and schedule an earlier check when needed to enter the 30-minute window.
+- Keep a durable run record with job and array-task IDs, dependencies, account/partition, scripts, logs, completed shard IDs, latest scheduler state and estimate, next check time, and recovery history. A background monitor should survive the interactive shell and retain its status on disk. Keep the agent responsible for diagnosis and repair; a polling process by itself cannot fix arbitrary application errors. Stop automated authentication attempts if SSH fails and ask the user to restore the authenticated connection.
+- On failure, inspect accounting including failed steps, exit codes, and the affected logs before retrying. Distinguish application errors from host-memory exhaustion, CUDA-memory exhaustion, time limits, preemption, and node failures. Fix the observed cause, validate the change inside an appropriate allocation, then restart only failed or incomplete tasks. Preserve verified outputs and checkpoint state. Do not launch duplicate work after an uncertain submission or blindly repeat a deterministic failure.
+- Check downstream dependencies after recovery. A failed prerequisite can leave dependents with `DependencyNeverSatisfied`; rewire or replace affected dependent jobs under the same authorized run and record the new IDs. Never mistake an obsolete failed attempt for a failure of its successful replacement.
+- Keep retries bounded for each observed failure cause. After three unsuccessful recovery attempts for the same cause, retain the diagnostics and report the specific blocker instead of consuming resources in a retry loop. Continue unaffected work. Changes to scientific settings, dataset coverage, account/allocation, or destructive cleanup must remain within the user's authorization.
+- Finish only after scheduler exit status, application reports, and expected outputs agree. For arrays, verify exact manifest coverage, uniqueness, and successful aggregation. Retrieve requested artifacts and stop the monitor once final validation succeeds; report any genuine validation skips or missing results.
+
 Report usage with the **actual suffixed account** and known billing-cycle start:
 
 ```bash

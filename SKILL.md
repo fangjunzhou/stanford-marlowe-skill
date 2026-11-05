@@ -51,6 +51,10 @@ Remote access must preserve Marlowe's authenticated entry path. Use Open OnDeman
 
 Honor the user's authorization for changes, submissions, and cancellations without adding a blanket confirmation step. Diagnose-only requests do not imply permission to cancel jobs, spend a different allocation, or delete data.
 
+## Own submitted work through completion
+
+When the user asks you to run work, keep monitoring until the workload and expected outputs are verified. Diagnose failures, make fixes within the authorized scope, and restart only failed or incomplete work; submission acceptance is not completion. For pending work, check every 30 minutes while its estimated start is more than 30 minutes away, then every 10 minutes when startup is within 30 minutes. Continue at a 10-minute cadence while running or when no usable estimate is available. Re-evaluate the estimate at each check. See [monitoring and recovery](references/jobs.md#monitoring-cadence-and-recovery) for dependencies, retries, and durable status.
+
 ## Report the observed result
 
 For submissions, report job ID, account/partition, script and working directory, resource request, logs, and observed state. Submission acceptance does not establish workload success. For transfers, distinguish previews from completed copies. State which checks were local, scheduler-only, or actual application runs.
