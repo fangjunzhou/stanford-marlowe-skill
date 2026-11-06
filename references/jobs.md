@@ -9,6 +9,7 @@ sacctmgr show assoc user="$USER" format=Account%30,QOS
 sinfo -o '%P %a %l %D %G'
 scontrol show partition preempt
 sacctmgr show qos normal format=Name,MaxTRESPerAccount
+sacctmgr show qos medium format=Name,MaxTRESPerAccount,MaxSubmitJobsPA,MaxJobsPA
 ```
 
 Use an exact association, including its allocation suffix. `PROJECT_ID` is an identifier such as `m123456`; it is not the full Slurm account or its suffix.
@@ -56,6 +57,7 @@ For independent inference, evaluation, preprocessing, or parameter sweeps, split
 - Request the smallest practical GPU count, CPU count, host RAM, and walltime per shard. Use one GPU when the application fits; retain multiple GPUs when model memory or coupled computation requires them.
 - Size shards so useful processing outweighs environment startup and model loading, while keeping jobs short enough to schedule independently. A shard can contain several inputs; do not create tiny jobs dominated by setup.
 - Set the array range from the shard count and bound concurrency with `%N` within current project GPU and job limits. For example, `--array=0-99%4` represents 100 shards with at most four running at once; it is illustrative, not a site limit. Concurrency times GPUs per shard must fit the project's available GPU allowance.
+- Check allocation-wide submitted-job limits as well as GPU limits. Pending array elements count toward submission limits; reserve slots for prerequisites, aggregation, and recovery. Consolidate shards or submit successive waves when a full array would exceed the limit.
 - Give each shard separate outputs, checkpoints, and logs. Record completion, retry only failed or incomplete shards, and check full manifest coverage before aggregating results. For `preempt`, implement periodic save and startup reload using [checkpoints](checkpoints.md); requeue restarts the script, not process memory.
 
 ## Monitor and account
