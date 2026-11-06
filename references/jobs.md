@@ -22,6 +22,8 @@ Use an exact association, including its allocation suffix. `PROJECT_ID` is an id
 
 Never assume the suffix is `01`. A `-pmNN` or `-free` account cannot use `preempt`; prefer the unsuffixed Basic Access account for opportunistic work. Check entitlement before selecting `hero`. The reviewed guide lists batch limits of 16 nodes/48 hours and hero limits of 31 nodes/30 days. Query current partition and QOS limits, especially the changing `preempt` time and per-project GPU cap.
 
+This user's default is `batch` with an entitled `medium` allocation. Select `preempt` only at the user's explicit request, including when batch start estimates are later or some allocations have reached their limits.
+
 For memory defaults inspect the selected partition's `DefMemPerCPU`. `MaxMemPerCPU` is a ceiling, not a default. Choose explicit CPU, host RAM, GPU, and time requests from the workload. Host RAM requests do not increase GPU VRAM.
 
 ## Interactive or batch

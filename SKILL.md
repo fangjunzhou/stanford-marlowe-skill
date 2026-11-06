@@ -41,6 +41,8 @@ Label command examples by execution location. Quote remote shell programs or use
 
 Every job needs a valid account and an explicit GPU request when GPUs are needed. Discover the account/partition pairing before choosing resources. `preempt` can restart a job from its script's beginning; application checkpoint loading supplies recovery.
 
+User preference: run jobs on `batch` with an entitled `medium` allocation. Use `preempt` only when the user explicitly requests it; do not switch to it because a batch queue is slow or an allocation has limits.
+
 For workloads with independent inputs, default to many small jobs over disjoint data shards instead of a few large jobs. Prefer Slurm arrays with bounded concurrency and the smallest practical resource request per shard, usually one GPU when the workload fits. This can improve queue time. Use larger allocations when the workload requires coupled execution or cannot fit in a smaller job. See [jobs and accounts](references/jobs.md#shard-independent-work) for shard sizing and recovery.
 
 Use `/scratch/PROJECT_ID` for active I/O, `/projects/PROJECT_ID` for persistent project material, and the job's `/local_scratch/$USER.$SLURM_JOBID` only for disposable node-local work. Scratch is not backed up. Do not import Sherlock paths, helper commands, partitions, GPU constraints, or retention periods into Marlowe.
